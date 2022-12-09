@@ -57,6 +57,7 @@ def draw_multiple_line_text(
     font: ImageFont.FreeTypeFont,
     text_colour: str,
     text_start_height: float,
+    width: int = 15,
 ) -> float:
     """Create a bingo square
 
@@ -66,6 +67,7 @@ def draw_multiple_line_text(
         font: desired font
         text_colour: desired text colour
         text_start_height: starting height for text
+        width: number of spaces per line (larger with smaller text)
 
     Returns:
         the location below the last line of text
@@ -73,7 +75,7 @@ def draw_multiple_line_text(
     draw = ImageDraw.Draw(image)
     image_width, image_height = image.size
     y_text = text_start_height
-    lines = textwrap.wrap(text, width=15)
+    lines = textwrap.wrap(text, width=width)
     for line in lines:
         line_width, line_height = font.getsize(line)
         draw.text(
@@ -100,72 +102,35 @@ def create_square(title: str, artist: str) -> Image:
     img = Image.open(BLANK_SQUARE_IMG)
     text = ImageDraw.Draw(img)
 
-    # TODO: make this more generic (i.e. less explicit)"
-    # TODO: this currently is slightly broken if one of the removes is contained in a previous item
-    removes = [
-        "(Original Mix)",
-        "- Radio Mix",
-        "- Remastered 2004",
-        "- 2004 Remaster",
-        "- Remastered",
-        "- Radio Edit",
-        "- From 13 Reasons Why - Season 2 Soundtrack",
-        '- From "Bridget Jones\'s Baby"',
-        "- 1995 Remaster",
-        "- Version Revisited",
-        '- From "Top Gun" Original Soundtrack',
-        "- Single Version",
-        "- English Version",
-        "- Remix",
-        '- 7" Mix',
-        "- Original Version 1978",
-        "- Mono",
-        "- 2006 Remaster",
-        "- 2005 Remaster",
-        "- Remastered 2011",
-        '- From "Despicable Me 2"',
-        '- Theme From "Friends"',
-        "- Spider-Man: Into the Spider-Verse",
-        "- with 24kGoldn",
-        "- Main",
-        "- 2014 Remaster",
-        "- 2008 Remaster",
-        "- 2005 Remaster",
-        "- Original",
-        "- 2016 Remaster",
-        '- From "Footloose" Soundtrack',
-        "- Remastered 2014",
-        "- from the series Arcane League of Legends",
-        '(from DreamWorks Animation\'s "TROLLS")',
-        "- 2003 Remaster",
-        "- Remastered 2011",
-        "(2007 Remastered Saturday Night Fever LP Version)",
-        "- Remastered Version 1991",
-        "- 2018 Remaster",
-        "- 2015 Remaster",
-        "- 2016 Remaster",
-        "- Remaster",
-        "(2022 Remaster",
-        '- From "Dirty Dancing" Soundtrack',
-        "- 2002 Remaster",
-        "- 2017 Remaster",
-        "2014",
-    ]
-    for i in removes:
-        title = strip_title(i, title)
+    # Removes extra song information from title (e.g. "- 2013 Remaster")
+    title = title.rsplit(" - ")[0]
+
+    # TODO: remove explicit numerical values and add constants
+    font_modifier = 0
+    width = 15
+    if len(title) + len(artist) > 90:
+        font_modifier = 25
+        width = 22
 
     # Font selection
-    century_gothic = ImageFont.truetype("./fonts/CenturyGothic.ttf", 100)
-    century_gothic_sm = ImageFont.truetype("./fonts/CenturyGothic.ttf", 90)
-    century_gothic_bold = ImageFont.truetype("./fonts/CenturyGothicBold.ttf", 100)
+    century_gothic = ImageFont.truetype(
+        "./fonts/CenturyGothic.ttf", 100 - font_modifier
+    )
+    century_gothic_sm = ImageFont.truetype(
+        "./fonts/CenturyGothic.ttf", 90 - font_modifier
+    )
+    century_gothic_bold = ImageFont.truetype(
+        "./fonts/CenturyGothicBold.ttf", 100 - font_modifier
+    )
     text_color = "black"
 
     # Song name mustn't exceed tile width, else split to multiple lines
+
     text_start_height = img.height / 12
     height = draw_multiple_line_text(
-        img, title, century_gothic_bold, text_color, text_start_height
+        img, title, century_gothic_bold, text_color, text_start_height, width
     )
-    draw_multiple_line_text(img, artist, century_gothic_sm, text_color, height)
+    draw_multiple_line_text(img, artist, century_gothic_sm, text_color, height, width)
 
     return img
 
