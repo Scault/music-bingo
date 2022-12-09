@@ -38,6 +38,22 @@ def generate_24_numbers():
     return random.sample(range(1, NUM_SONGS), 24)
 
 
+def split_list(list_: list, n: int) -> list:
+    """ "Splits a list into n (roughly) equal lists
+
+    Args:
+        list_: desired list to split
+        n: number of desired sublists
+    Returns:
+        list of n sublists
+    """
+    div, mod = divmod(len(list_), n)
+
+    return [
+        list_[i * div + min(i, mod) : (i + 1) * div + min(i + 1, mod)] for i in range(n)
+    ]
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Generate seed and grid.")
     parser.add_argument("--load", dest="seed", action="store")
