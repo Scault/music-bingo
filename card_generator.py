@@ -264,7 +264,7 @@ def create_column(songs: List[Song]) -> Image:
 
 
 def create_middle_column(songs: List[Song]) -> Image:
-    """Create a bingo column
+    """Create the middle bingo column
 
     Args:
         songs: a list of (song_title, song_artist) tuples, length of 4
@@ -288,6 +288,14 @@ def create_middle_column(songs: List[Song]) -> Image:
 
 
 def add_overlay(card: Image) -> Image:
+    """Add an overlay to the bingo card
+
+    Args:
+        card: the final card Image object
+
+    Returns:
+        the overlay Image object containing the generated bingo card
+    """
     overlay = Image.open(OVERLAY_IMG)
 
     overlay_width, overlay_height = overlay.size

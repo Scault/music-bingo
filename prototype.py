@@ -16,7 +16,16 @@ playlist = spotify.playlist(PLAYLIST_URL)
 NUM_SONGS = playlist["tracks"]["total"]
 
 
-def get_song_list(username, playlist_url) -> list:
+def get_song_list(username: str, playlist_url: str) -> list:
+    """Retrieves a Spotify playlist
+
+    Args:
+        username: Spotify user ID
+        playlist_url: the url of the desired playlist
+
+    Returns:
+        a list of tuples (title, artist) for the entire playlist
+    """
     song_list = []
     results = spotify.user_playlist_tracks(username, playlist_url)
     tracks = results["items"]
@@ -34,7 +43,12 @@ def get_song_list(username, playlist_url) -> list:
     return song_list
 
 
-def generate_24_numbers():
+def generate_24_numbers() -> list:
+    """Generates 24 unique numbers within the range of the playlist
+
+    Returns:
+        a list of numbers
+    """
     return random.sample(range(1, NUM_SONGS), 24)
 
 
