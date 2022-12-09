@@ -49,7 +49,7 @@ def create_square(title: str, artist: str) -> Image:
     text = ImageDraw.Draw(img)
 
     # Font selection
-    century_gothic = ImageFont.truetype('./fonts/CenturyGothic.ttf', 100)
+    century_gothic = ImageFont.truetype('./fonts/CenturyGothic.ttf', 150)
 
     # Song name mustn't exceed 38 characters, else split to multiple lines
     # TODO: check for song and artist lengths
@@ -75,7 +75,7 @@ def create_free_space() -> Image:
     text = ImageDraw.Draw(img)
 
     # Font selection
-    century_gothic = ImageFont.truetype('./fonts/CenturyGothic.ttf', 200)
+    century_gothic = ImageFont.truetype('./fonts/CenturyGothicBold.ttf', 200)
 
     # Song name mustn't exceed 38 characters, else split to multiple lines
     # TODO: check for song and artist lengths
