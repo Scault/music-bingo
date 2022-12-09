@@ -62,6 +62,7 @@ class Window(tk.Tk):
         settings_menu = tk.Menu(menubar, tearoff=0)
         colour_menu = tk.Menu(menubar, tearoff=0)
         size_menu = tk.Menu(menubar, tearoff=0)
+        playlist_menu = tk.Menu(menubar, tearoff=0)
         self.info_menu = tk.Menu(menubar, tearoff=0)
 
         # Create main menus
@@ -69,7 +70,7 @@ class Window(tk.Tk):
         menubar.add_cascade(label="Settings", menu=settings_menu)
         menubar.add_cascade(label="Info", menu=self.info_menu)
 
-        # Add command(s) to Window menu
+        # Add command(s) to File menu
         file_menu.add_command(
             label="Clear Card", accelerator="Ctrl+Z", command=lambda: self.clear()
         )
@@ -86,6 +87,8 @@ class Window(tk.Tk):
         settings_menu.add_cascade(label="Change Colour", menu=colour_menu)
         settings_menu.add_separator()
         settings_menu.add_cascade(label="Change Cursor Size", menu=size_menu)
+        settings_menu.add_separator()
+        settings_menu.add_cascade(label="Change Playlist", menu=playlist_menu)
 
         # Add colour selections to Colour menu
         self.colour = tk.StringVar()
@@ -100,6 +103,58 @@ class Window(tk.Tk):
         size_menu.add_radiobutton(label="Small", variable=self.cursor_size, value=10)
         size_menu.add_radiobutton(label="Medium", variable=self.cursor_size, value=20)
         size_menu.add_radiobutton(label="Large", variable=self.cursor_size, value=30)
+
+        # Add playlists to Playlist menu
+        self.playlist = tk.IntVar()
+        self.playlist.set(1)
+        playlist_menu.add_radiobutton(
+            label="70s",
+            variable=self.playlist,
+            value=0,
+            command=lambda: self.generate_new_card(),
+        )
+        playlist_menu.add_radiobutton(
+            label="80s",
+            variable=self.playlist,
+            value=1,
+            command=lambda: self.generate_new_card(),
+        )
+        playlist_menu.add_radiobutton(
+            label="90s",
+            variable=self.playlist,
+            value=2,
+            command=lambda: self.generate_new_card(),
+        )
+        playlist_menu.add_radiobutton(
+            label="2000s 1",
+            variable=self.playlist,
+            value=3,
+            command=lambda: self.generate_new_card(),
+        )
+        playlist_menu.add_radiobutton(
+            label="2000s 2",
+            variable=self.playlist,
+            value=4,
+            command=lambda: self.generate_new_card(),
+        )
+        playlist_menu.add_radiobutton(
+            label="2010s 1",
+            variable=self.playlist,
+            value=5,
+            command=lambda: self.generate_new_card(),
+        )
+        playlist_menu.add_radiobutton(
+            label="2010s 2",
+            variable=self.playlist,
+            value=6,
+            command=lambda: self.generate_new_card(),
+        )
+        playlist_menu.add_radiobutton(
+            label="2010s 3",
+            variable=self.playlist,
+            value=7,
+            command=lambda: self.generate_new_card(),
+        )
 
         # Add command(s) to Info menu
         self.info_menu.add_command(label=f"Seed: {self.seed}", state="disabled")
@@ -127,9 +182,9 @@ class Window(tk.Tk):
             seed: seed to use for card generation
         """
         if seed:
-            self.seed = generate_card(seed)
+            self.seed = generate_card(seed, self.playlist.get())
         else:
-            self.seed = generate_card()
+            self.seed = generate_card(playlist=self.playlist.get())
         self.im_cv.delete("all")
         image = Image.open("output/results.jpg")
         image = image.resize((600, 750), Image.Resampling.LANCZOS)

@@ -13,11 +13,22 @@ auth_manager = SpotifyClientCredentials(
 )
 spotify = Spotify(auth_manager=auth_manager)
 PLAYLIST_URL = (
-    "https://open.spotify.com/playlist/1uWD5EA3peWrkdO4VNKoh0?si=2aa8a205ed9c4fdc"
+    "https://open.spotify.com/playlist/5tl7iMYPGspVvMgryoA2HS?si=3812eee2d17a4cc5"
 )
-playlist = spotify.playlist(PLAYLIST_URL)
+# playlist = spotify.playlist(PLAYLIST_URL)
 
-NUM_SONGS = playlist["tracks"]["total"]
+# NUM_SONGS = playlist["tracks"]["total"]
+
+PLAYLISTS = [
+    "https://open.spotify.com/playlist/02Ze53FXXBgaSTfB9jpV1N?si=1a29aeb0e6b94621",  # 70s 1
+    "https://open.spotify.com/playlist/2ZXxE8nsKuXplbOGVXRmk7?si=3508c19bb14343b0",  # 80s 1
+    "https://open.spotify.com/playlist/4akSDZd9ppJx6LEhpWUXnJ?si=dce9d73d30714749",  # 90s 1
+    "https://open.spotify.com/playlist/4WSK9EZdrSmVn94oh9fC0F?si=489fe486218b462c",  # 00s 1
+    "https://open.spotify.com/playlist/340iasv2MTZsqAJBZHvScl?si=da6837376dd94468",  # 00s 2
+    "https://open.spotify.com/playlist/6m9nAnMWZZ37nKqb8VxgT3?si=1ab09f9777c6417d",  # 10s 1
+    "https://open.spotify.com/playlist/18i1CLpGUR1F0zl4IEWsOm?si=548426d4703d4b24",  # 10s 2
+    "https://open.spotify.com/playlist/312n27j1xsU0Ee1NkyDdFw?si=0cca0803da4f44b2",  # 10s 3
+]
 
 
 def get_song_list(username: str, playlist_url: str) -> list:
@@ -47,14 +58,17 @@ def get_song_list(username: str, playlist_url: str) -> list:
     return song_list
 
 
-def generate_24_numbers() -> list:
+def generate_24_numbers(playlist: int = None) -> list:
     """Generates 24 unique numbers within the range of the playlist
 
     Returns:
         a list of numbers
     """
+    url = PLAYLISTS[playlist] if playlist is not None else PLAYLIST_URL
+    num_songs = spotify.playlist(PLAYLISTS[playlist])["tracks"]["total"]
+
     nums = []
-    div, mod = divmod(NUM_SONGS, 5)
+    div, mod = divmod(num_songs, 5)
 
     for i in range(5):
         nums.extend(
@@ -83,7 +97,7 @@ def split_list(list_: list, n: int) -> list:
     ]
 
 
-def generate_card(seed: int = None) -> int:
+def generate_card(seed: int = None, playlist: int = None) -> int:
     """Generates a bingo card
 
     Args:
@@ -99,10 +113,12 @@ def generate_card(seed: int = None) -> int:
         logging.info(f"Seed: {seed}")
         random.seed(seed)
 
-    nums = generate_24_numbers()
+    nums = generate_24_numbers(playlist)
     logging.info(f"{nums}")
 
-    song_list = get_song_list("scotttheriault", PLAYLIST_URL)
+    song_list = get_song_list(
+        "scotttheriault", PLAYLISTS[playlist] if playlist is not None else PLAYLIST_URL
+    )
 
     # Shuffle list in a repeatable manner (i.e. shuffle the same way every time)
     random.Random(1).shuffle(song_list)
