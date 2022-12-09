@@ -4,7 +4,7 @@ from os import path, makedirs
 import textwrap
 
 BLANK_SQUARE_IMG = "imgs/blank_sq.jpg"
-FREE_SPACE_IMG = "imgs/free_space.jpg"
+OVERLAY_IMG = "imgs/overlay.jpg"
 
 Song = Tuple[str, str]
 
@@ -287,6 +287,21 @@ def create_middle_column(songs: List[Song]) -> Image:
     )
 
 
+def add_overlay(card: Image) -> Image:
+    overlay = Image.open(OVERLAY_IMG)
+
+    overlay_width, overlay_height = overlay.size
+    card_width, card_height = card.size
+
+    width_offset = int((overlay_width - card_width) / 2)
+    height_offset = int(overlay_height - card_height - width_offset)
+
+    offset = (width_offset, height_offset)
+
+    overlay.paste(card, offset)
+    return overlay
+
+
 def create_card(songs: List[Song]) -> Image:
     """Create a bingo card
 
@@ -296,16 +311,18 @@ def create_card(songs: List[Song]) -> Image:
     Returns:
         the resulting Image object
     """
-    return merge_images_horizontally(
+    return add_overlay(
         merge_images_horizontally(
             merge_images_horizontally(
-                create_column(songs[0:5]), create_column(songs[5:10])
+                merge_images_horizontally(
+                    create_column(songs[0:5]), create_column(songs[5:10])
+                ),
+                create_middle_column(songs[10:14]),
             ),
-            create_middle_column(songs[10:14]),
-        ),
-        merge_images_horizontally(
-            create_column(songs[14:19]), create_column(songs[19:])
-        ),
+            merge_images_horizontally(
+                create_column(songs[14:19]), create_column(songs[19:])
+            ),
+        )
     )
 
 
