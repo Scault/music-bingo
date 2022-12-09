@@ -35,7 +35,18 @@ def get_song_list(username, playlist_url) -> list:
 
 
 def generate_24_numbers():
-    return random.sample(range(1, NUM_SONGS), 24)
+    nums = []
+    div, mod = divmod(NUM_SONGS, 5)
+
+    for i in range(5):
+        nums.extend(
+            random.sample(
+                range(i * div + min(i, mod), (i + 1) * div + min(i + 1, mod)),
+                5 if i != 2 else 4,
+            )
+        )
+
+    return nums
 
 
 def split_list(list_: list, n: int) -> list:
@@ -70,6 +81,10 @@ if __name__ == "__main__":
     print(nums)
 
     song_list = get_song_list("scotttheriault", PLAYLIST_URL)
+
+    # Shuffle list in a repeatable manner (i.e. shuffle the same way every time)
+    random.Random(1).shuffle(song_list)
+
     card_songs = []
     for num in nums:
         card_songs.append(song_list[num])
