@@ -101,9 +101,11 @@ def create_square(title: str, artist: str) -> Image:
     text = ImageDraw.Draw(img)
 
     # TODO: make this more generic (i.e. less explicit)"
+    # TODO: this currently is slightly broken if one of the removes is contained in a previous item
     removes = [
         "(Original Mix)",
         "- Radio Mix",
+        "- Remastered 2004",
         "- 2004 Remaster",
         "- Remastered",
         "- Radio Edit",
@@ -145,7 +147,6 @@ def create_square(title: str, artist: str) -> Image:
         "- Remaster",
         "(2022 Remaster",
         '- From "Dirty Dancing" Soundtrack',
-        "- Remastered 2004",
         "- 2002 Remaster",
         "- 2017 Remaster",
         "2014",
