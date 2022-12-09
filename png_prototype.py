@@ -31,7 +31,7 @@ example_songs = [
     ("Song21", "Artist21"),
     ("Song22", "Artist22"),
     ("Song23", "Artist23"),
-    ("Song24", "Artist24")
+    ("Song24", "Artist24"),
 ]
 
 
@@ -49,7 +49,7 @@ def create_square(title: str, artist: str) -> Image:
     text = ImageDraw.Draw(img)
 
     # Font selection
-    century_gothic = ImageFont.truetype('./fonts/CenturyGothic.ttf', 150)
+    century_gothic = ImageFont.truetype("./fonts/CenturyGothic.ttf", 150)
 
     # Song name mustn't exceed 38 characters, else split to multiple lines
     # TODO: check for song and artist lengths
@@ -59,7 +59,7 @@ def create_square(title: str, artist: str) -> Image:
         fill="black",
         anchor="ms",
         align="center",
-        font=century_gothic
+        font=century_gothic,
     )
 
     return img
@@ -75,7 +75,7 @@ def create_free_space() -> Image:
     text = ImageDraw.Draw(img)
 
     # Font selection
-    century_gothic = ImageFont.truetype('./fonts/CenturyGothicBold.ttf', 200)
+    century_gothic = ImageFont.truetype("./fonts/CenturyGothicBold.ttf", 200)
 
     # Song name mustn't exceed 38 characters, else split to multiple lines
     # TODO: check for song and artist lengths
@@ -85,7 +85,7 @@ def create_free_space() -> Image:
         fill="black",
         anchor="ms",
         align="center",
-        font=century_gothic
+        font=century_gothic,
     )
 
     return img
@@ -107,7 +107,7 @@ def merge_images_horizontally(image1: Image, image2: Image) -> Image:
     result_width = width1 + width2
     result_height = max(height1, height2)
 
-    result = Image.new('RGB', (result_width, result_height))
+    result = Image.new("RGB", (result_width, result_height))
     result.paste(im=image1, box=(0, 0))
     result.paste(im=image2, box=(width1, 0))
 
@@ -130,7 +130,7 @@ def merge_images_vertically(image1: Image, image2: Image) -> Image:
     result_width = max(width1, width2)
     result_height = height1 + height2
 
-    result = Image.new('RGB', (result_width, result_height))
+    result = Image.new("RGB", (result_width, result_height))
     result.paste(im=image1, box=(0, 0))
     result.paste(im=image2, box=(0, height1))
 
@@ -150,14 +150,14 @@ def create_column(songs: List[Song]) -> Image:
         merge_images_vertically(
             merge_images_vertically(
                 create_square(songs[0][0], songs[0][1]),
-                create_square(songs[1][0], songs[1][1])
+                create_square(songs[1][0], songs[1][1]),
             ),
             merge_images_vertically(
                 create_square(songs[2][0], songs[2][1]),
-                create_square(songs[3][0], songs[3][1])
-            )
+                create_square(songs[3][0], songs[3][1]),
+            ),
         ),
-        create_square(songs[4][0], songs[4][1])
+        create_square(songs[4][0], songs[4][1]),
     )
 
 
@@ -174,14 +174,14 @@ def create_middle_column(songs: List[Song]) -> Image:
         merge_images_vertically(
             merge_images_vertically(
                 create_square(songs[0][0], songs[0][1]),
-                create_square(songs[1][0], songs[2][1])
+                create_square(songs[1][0], songs[2][1]),
             ),
             create_free_space(),
         ),
         merge_images_vertically(
             create_square(songs[2][0], songs[2][1]),
-            create_square(songs[3][0], songs[3][1])
-        )
+            create_square(songs[3][0], songs[3][1]),
+        ),
     )
 
 
@@ -197,15 +197,13 @@ def create_card(songs: List[Song]) -> Image:
     return merge_images_horizontally(
         merge_images_horizontally(
             merge_images_horizontally(
-                create_column(songs[0:5]),
-                create_column(songs[5:10])
+                create_column(songs[0:5]), create_column(songs[5:10])
             ),
-            create_middle_column(songs[10:14])
+            create_middle_column(songs[10:14]),
         ),
         merge_images_horizontally(
-            create_column(songs[14:19]),
-            create_column(songs[19:])
-        )
+            create_column(songs[14:19]), create_column(songs[19:])
+        ),
     )
 
 
