@@ -1,6 +1,7 @@
 import random
 import argparse
 from png_prototype import create_card
+from os import path, makedirs
 
 # TODO: Update this number automatically with the number of songs in the playlist
 NUM_SONGS = 601
@@ -36,4 +37,6 @@ if __name__ == "__main__":
         # TODO: Change song name and artist to actual values
         songs.append((str(value), "Artist" + str(i + 1)))
 
-    create_card(songs).save("results.jpg")
+    if not path.exists("output/"):
+        makedirs("output/")
+    create_card(songs).save("output/results.jpg")
