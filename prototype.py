@@ -6,7 +6,7 @@ import logging
 import argparse
 from os import path, makedirs, environ
 from card_generator import create_card
-from spotipy import SpotifyClientCredentials, Spotify
+from spotipy import SpotifyClientCredentials, Spotify, SpotifyException
 
 logging.basicConfig(stream=sys.stderr, level=logging.WARNING)
 
@@ -67,7 +67,7 @@ def generate_24_numbers(playlist: int = None) -> list:
         a list of numbers
     """
     url = PLAYLISTS[playlist] if playlist is not None else PLAYLIST_URL
-    num_songs = spotify.playlist(PLAYLISTS[playlist])["tracks"]["total"]
+    num_songs = spotify.playlist(url)["tracks"]["total"]
 
     nums = []
     div, mod = divmod(num_songs, 5)
@@ -97,6 +97,16 @@ def split_list(list_: list, n: int) -> list:
     return [
         list_[i * div + min(i, mod) : (i + 1) * div + min(i + 1, mod)] for i in range(n)
     ]
+
+
+def add_custom_playlist(url: str) -> bool:
+    try:
+        spotify.playlist(PLAYLIST_URL)
+    except SpotifyException:
+        return False
+
+    PLAYLISTS.append(url)
+    return True
 
 
 def generate_card(seed: int = None, playlist: int = None) -> int:

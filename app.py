@@ -1,35 +1,8 @@
 import tkinter as tk
+from tkinter import messagebox
+from tkinter.simpledialog import askstring, askinteger
 from PIL import Image, ImageTk
-from prototype import generate_card
-
-
-class LoadWindow(object):
-    """The Load Card pop-up window."""
-
-    def __init__(self, master) -> None:
-        """Initializes the Load Card Window.
-
-        Args:
-            master: the parent window
-        """
-        self.top = tk.Toplevel(master)
-        self.top.geometry("200x75")
-        self.top.resizable(False, False)
-        icon = tk.PhotoImage(file="imgs/icon.png")
-        self.top.wm_iconphoto(False, icon)
-        self.frame = tk.Frame(self.top)
-        self.frame.pack(anchor="nw", fill="both", expand=1)
-        self.label = tk.Label(self.frame, text="Enter Seed:")
-        self.label.pack(anchor="center", fill="both", expand=1)
-        self.entry = tk.Entry(self.frame)
-        self.entry.pack(anchor="center")
-        self.button = tk.Button(self.frame, text="Ok", command=self.cleanup)
-        self.button.pack(anchor="center")
-
-    def cleanup(self) -> None:
-        """Destroys the Load Card window and retrieves the user entry."""
-        self.value = self.entry.get()
-        self.top.destroy()
+from prototype import generate_card, add_custom_playlist, spotify, SpotifyException
 
 
 class Window(tk.Tk):
@@ -46,10 +19,11 @@ class Window(tk.Tk):
         self.color = "red"
         self.actions = []
         self.seed = "Unknown"
+        self.playlist_count = 8
         self.init_menu()
         self.init_canvas()
         self.bind("<Control-z>", lambda e: self.clear())
-        self.bind("<Control-l>", lambda e: self.popup())
+        self.bind("<Control-l>", lambda e: self.load_seed())
         self.bind("<Control-n>", lambda e: self.generate_new_card())
 
     def init_menu(self) -> None:
@@ -62,7 +36,7 @@ class Window(tk.Tk):
         settings_menu = tk.Menu(menubar, tearoff=0)
         colour_menu = tk.Menu(menubar, tearoff=0)
         size_menu = tk.Menu(menubar, tearoff=0)
-        playlist_menu = tk.Menu(menubar, tearoff=0)
+        self.playlist_menu = tk.Menu(menubar, tearoff=0)
         self.info_menu = tk.Menu(menubar, tearoff=0)
 
         # Create main menus
@@ -75,12 +49,16 @@ class Window(tk.Tk):
             label="Clear Card", accelerator="Ctrl+Z", command=lambda: self.clear()
         )
         file_menu.add_command(
-            label="Load Card", accelerator="Ctrl+L", command=lambda: self.popup()
+            label="Load Card", accelerator="Ctrl+L", command=lambda: self.load_seed()
         )
         file_menu.add_command(
             label="Generate New Card",
             accelerator="Ctrl+N",
             command=lambda: self.generate_new_card(),
+        )
+        file_menu.add_command(
+            label="Select Custom Playlist",
+            command=lambda: self.custom_playlist(),
         )
 
         # Add command(s) to Settings menu
@@ -88,7 +66,7 @@ class Window(tk.Tk):
         settings_menu.add_separator()
         settings_menu.add_cascade(label="Change Cursor Size", menu=size_menu)
         settings_menu.add_separator()
-        settings_menu.add_cascade(label="Change Playlist", menu=playlist_menu)
+        settings_menu.add_cascade(label="Change Playlist", menu=self.playlist_menu)
 
         # Add colour selections to Colour menu
         self.colour = tk.StringVar()
@@ -107,49 +85,49 @@ class Window(tk.Tk):
         # Add playlists to Playlist menu
         self.playlist = tk.IntVar()
         self.playlist.set(0)
-        playlist_menu.add_radiobutton(
+        self.playlist_menu.add_radiobutton(
             label="70s",
             variable=self.playlist,
             value=0,
             command=lambda: self.generate_new_card(),
         )
-        playlist_menu.add_radiobutton(
+        self.playlist_menu.add_radiobutton(
             label="80s",
             variable=self.playlist,
             value=1,
             command=lambda: self.generate_new_card(),
         )
-        playlist_menu.add_radiobutton(
+        self.playlist_menu.add_radiobutton(
             label="90s",
             variable=self.playlist,
             value=2,
             command=lambda: self.generate_new_card(),
         )
-        playlist_menu.add_radiobutton(
+        self.playlist_menu.add_radiobutton(
             label="2000s 1",
             variable=self.playlist,
             value=3,
             command=lambda: self.generate_new_card(),
         )
-        playlist_menu.add_radiobutton(
+        self.playlist_menu.add_radiobutton(
             label="2000s 2",
             variable=self.playlist,
             value=4,
             command=lambda: self.generate_new_card(),
         )
-        playlist_menu.add_radiobutton(
+        self.playlist_menu.add_radiobutton(
             label="2010s 1",
             variable=self.playlist,
             value=5,
             command=lambda: self.generate_new_card(),
         )
-        playlist_menu.add_radiobutton(
+        self.playlist_menu.add_radiobutton(
             label="2010s 2",
             variable=self.playlist,
             value=6,
             command=lambda: self.generate_new_card(),
         )
-        playlist_menu.add_radiobutton(
+        self.playlist_menu.add_radiobutton(
             label="2010s 3",
             variable=self.playlist,
             value=7,
@@ -185,6 +163,7 @@ class Window(tk.Tk):
             self.seed = generate_card(seed, self.playlist.get())
         else:
             self.seed = generate_card(playlist=self.playlist.get())
+
         self.im_cv.delete("all")
         image = Image.open(f"output/bingo_card-{self.seed}.jpg")
         image = image.resize((600, 750), Image.Resampling.LANCZOS)
@@ -193,17 +172,39 @@ class Window(tk.Tk):
         self.im_cv.create_image(0, 0, image=self.im, anchor="nw")
         self.info_menu.entryconfigure(1, label=f"Seed: {self.seed}")
 
-    def popup(self) -> None:
-        """Opens the Load Card popup window."""
-        self.load = LoadWindow(self)
-        self.wait_window(self.load.top)
+    def custom_playlist(self):
+        """Opens the Playlist popup window."""
+        url = askstring("Add Custom Playlist", "Enter Spotify playlist URL:\t\t\t\t")
+
+        if url is None:
+            return
+
         try:
-            if int(self.load.value) == self.seed:
-                pass
-            else:
-                self.generate_new_card(self.load.value)
-        except (AttributeError, ValueError):
-            pass
+            num_songs = spotify.playlist(url)["tracks"]["total"]
+            if num_songs < 25:
+                messagebox.showerror("Error", "Playlist must be longer than 24 songs.")
+                return
+        except SpotifyException:
+            return
+
+        if add_custom_playlist(url):
+            self.playlist_menu.add_radiobutton(
+                label="Custom Playlist",
+                variable=self.playlist,
+                value=self.playlist_count,
+                command=lambda: self.generate_new_card(),
+            )
+        self.playlist.set(self.playlist_count)
+        self.playlist_count += 1
+        self.generate_new_card()
+
+    def load_seed(self) -> None:
+        """Opens the Load Card popup window."""
+        seed = askinteger("Load Card", "Enter a seed:\t\t\t\t")
+
+        if seed == self.seed or seed is None:
+            return
+        self.generate_new_card(seed)
 
     def paint(self, event) -> None:
         """Paint on the canvas using the user's mouse.
