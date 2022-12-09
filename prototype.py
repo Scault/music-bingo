@@ -1,8 +1,12 @@
+import sys
 import random
-from spotipy import SpotifyClientCredentials, Spotify
+import logging
 import argparse
-from card_generator import create_card
 from os import path, makedirs, environ
+from card_generator import create_card
+from spotipy import SpotifyClientCredentials, Spotify
+
+logging.basicConfig(stream=sys.stderr, level=logging.WARNING)
 
 auth_manager = SpotifyClientCredentials(
     environ["SPOTIFY_CLIENT_ID"], environ["SPOTIFY_CLIENT_SECRET"]
@@ -79,20 +83,24 @@ def split_list(list_: list, n: int) -> list:
     ]
 
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Generate seed and grid.")
-    parser.add_argument("--load", dest="seed", action="store")
+def generate_card(seed: int = None) -> int:
+    """Generates a bingo card
 
-    args = parser.parse_args()
-    if args.seed:
-        random.seed(int(args.seed))
+    Args:
+        seed: seed to use for card generation
+
+    Returns:
+        the seed of the generated bingo card
+    """
+    if seed:
+        random.seed(int(seed))
     else:
         seed = random.randint(1000000, 99999999)
-        print(f"Seed: {seed}")
+        logging.info(f"Seed: {seed}")
         random.seed(seed)
 
     nums = generate_24_numbers()
-    print(nums)
+    logging.info(f"{nums}")
 
     song_list = get_song_list("scotttheriault", PLAYLIST_URL)
 
@@ -106,3 +114,15 @@ if __name__ == "__main__":
     if not path.exists("output/"):
         makedirs("output/")
     create_card(card_songs).save("output/results.jpg")
+    return int(seed)
+
+
+if __name__ == "__main__":
+    logging.getLogger().setLevel(logging.INFO)
+
+    parser = argparse.ArgumentParser(description="Generate seed and grid.")
+    parser.add_argument("--load", dest="seed", action="store")
+
+    args = parser.parse_args()
+
+    seed = generate_card(args.seed)
