@@ -49,13 +49,39 @@ def create_square(title: str, artist: str) -> Image:
     text = ImageDraw.Draw(img)
 
     # Font selection
-    century_gothic = ImageFont.truetype('./fonts/CenturyGothic.ttf', 50)
+    century_gothic = ImageFont.truetype('./fonts/CenturyGothic.ttf', 100)
 
     # Song name mustn't exceed 38 characters, else split to multiple lines
     # TODO: check for song and artist lengths
     text.multiline_text(
         xy=(500, 500),
         text=f"{title}\nby\n{artist}",
+        fill="black",
+        anchor="ms",
+        align="center",
+        font=century_gothic
+    )
+
+    return img
+
+
+def create_free_space() -> Image:
+    """Create the "Free Space" square
+
+    Returns:
+        the Free Space Image object
+    """
+    img = Image.open(BLANK_SQUARE_IMG)
+    text = ImageDraw.Draw(img)
+
+    # Font selection
+    century_gothic = ImageFont.truetype('./fonts/CenturyGothic.ttf', 200)
+
+    # Song name mustn't exceed 38 characters, else split to multiple lines
+    # TODO: check for song and artist lengths
+    text.multiline_text(
+        xy=(500, 500),
+        text="FREE\nSPACE",
         fill="black",
         anchor="ms",
         align="center",
@@ -150,7 +176,7 @@ def create_middle_column(songs: List[Song]) -> Image:
                 create_square(songs[0][0], songs[0][1]),
                 create_square(songs[1][0], songs[2][1])
             ),
-            Image.open(FREE_SPACE_IMG),
+            create_free_space(),
         ),
         merge_images_vertically(
             create_square(songs[2][0], songs[2][1]),
