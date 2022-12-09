@@ -1,7 +1,7 @@
 import random
 from spotipy import SpotifyClientCredentials, Spotify
 import argparse
-from png_prototype import create_card
+from card_generator import create_card
 from os import path, makedirs, environ
 
 auth_manager = SpotifyClientCredentials(
