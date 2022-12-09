@@ -1,18 +1,40 @@
 import random
+from spotipy import SpotifyClientCredentials, Spotify
 import argparse
 from png_prototype import create_card
-from os import path, makedirs
+from os import path, makedirs, environ
 
-# TODO: Update this number automatically with the number of songs in the playlist
-NUM_SONGS = 601
-
-PLAYLIST = (
+auth_manager = SpotifyClientCredentials(
+    environ["SPOTIFY_CLIENT_ID"], environ["SPOTIFY_CLIENT_SECRET"]
+)
+spotify = Spotify(auth_manager=auth_manager)
+PLAYLIST_URL = (
     "https://open.spotify.com/playlist/1uWD5EA3peWrkdO4VNKoh0?si=2aa8a205ed9c4fdc"
 )
+playlist = spotify.playlist(PLAYLIST_URL)
+
+NUM_SONGS = playlist["tracks"]["total"]
+
+
+def get_song_list(username, playlist_url) -> list:
+    song_list = []
+    results = spotify.user_playlist_tracks(username, playlist_url)
+    tracks = results["items"]
+    while results["next"]:
+        results = spotify.next(results)
+        tracks.extend(results["items"])
+
+    for song in tracks:
+        artists = ""
+        for artist in song["track"]["artists"]:
+            artists += artist["name"] + ", "
+        artists = artists[:-2]
+
+        song_list.append((song["track"]["name"], artists))
+    return song_list
 
 
 def generate_24_numbers():
-    int_list = []
     return random.sample(range(1, NUM_SONGS), 24)
 
 
@@ -30,13 +52,12 @@ if __name__ == "__main__":
 
     nums = generate_24_numbers()
     print(nums)
-    # TODO: Convert these numbers to their respective (song name, artist) tuple
 
-    songs = []
-    for i, value in enumerate(nums):
-        # TODO: Change song name and artist to actual values
-        songs.append((str(value), "Artist" + str(i + 1)))
+    song_list = get_song_list("scotttheriault", PLAYLIST_URL)
+    card_songs = []
+    for num in nums:
+        card_songs.append(song_list[num])
 
     if not path.exists("output/"):
         makedirs("output/")
-    create_card(songs).save("output/results.jpg")
+    create_card(card_songs).save("output/results.jpg")

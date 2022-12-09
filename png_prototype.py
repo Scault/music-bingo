@@ -1,6 +1,7 @@
 from PIL import Image, ImageDraw, ImageFont
 from typing import Tuple, List
 from os import path, makedirs
+import textwrap
 
 BLANK_SQUARE_IMG = "imgs/blank_sq.jpg"
 FREE_SPACE_IMG = "imgs/free_space.jpg"
@@ -35,6 +36,57 @@ example_songs = [
 ]
 
 
+def strip_title(word: str, title: str) -> str:
+    """Strip a sub-string from a string
+
+    Args:
+        word: sub-string to remove
+        title: string to remove sub-string from
+
+    Returns:
+        the resulting string
+    """
+    if word in title:
+        title = title.replace(word, "")
+    return title
+
+
+def draw_multiple_line_text(
+    image: Image,
+    text: str,
+    font: ImageFont.FreeTypeFont,
+    text_colour: str,
+    text_start_height: float,
+) -> float:
+    """Create a bingo square
+
+    Args:
+        image: image to write on
+        text: text to write
+        font: desired font
+        text_colour: desired text colour
+        text_start_height: starting height for text
+
+    Returns:
+        the location below the last line of text
+    """
+    draw = ImageDraw.Draw(image)
+    image_width, image_height = image.size
+    y_text = text_start_height
+    lines = textwrap.wrap(text, width=15)
+    for line in lines:
+        line_width, line_height = font.getsize(line)
+        draw.text(
+            ((image_width - line_width) / 2, y_text),
+            line,
+            font=font,
+            fill=text_colour,
+            align="center",
+        )
+        y_text += line_height
+    return y_text
+
+
 def create_square(title: str, artist: str) -> Image:
     """Create a bingo square
 
@@ -48,19 +100,71 @@ def create_square(title: str, artist: str) -> Image:
     img = Image.open(BLANK_SQUARE_IMG)
     text = ImageDraw.Draw(img)
 
-    # Font selection
-    century_gothic = ImageFont.truetype("./fonts/CenturyGothic.ttf", 150)
+    # TODO: make this more generic (i.e. less explicit)"
+    removes = [
+        "(Original Mix)",
+        "- Radio Mix",
+        "- 2004 Remaster",
+        "- Remastered",
+        "- Radio Edit",
+        "- From 13 Reasons Why - Season 2 Soundtrack",
+        '- From "Bridget Jones\'s Baby"',
+        "- 1995 Remaster",
+        "- Version Revisited",
+        '- From "Top Gun" Original Soundtrack',
+        "- Single Version",
+        "- English Version",
+        "- Remix",
+        '- 7" Mix',
+        "- Original Version 1978",
+        "- Mono",
+        "- 2006 Remaster",
+        "- 2005 Remaster",
+        "- Remastered 2011",
+        '- From "Despicable Me 2"',
+        '- Theme from "Friends"',
+        "- Spider-Man: Into the Spider-Verse",
+        "- with 24kGoldn",
+        "- Main",
+        "- 2014 Remaster",
+        "- 2008 Remaster",
+        "- 2005 Remaster",
+        "- Original",
+        "- 2016 Remaster",
+        '- From "Footloose" Soundtrack',
+        "- Remastered 2014",
+        "- from the series Arcane League of Legends",
+        '(from DreamWorks Animation\'s "TROLLS")',
+        "- 2003 Remaster",
+        "- Remastered 2011",
+        "(2007 Remastered Saturday Night Fever LP Version)",
+        "- Remastered Version 1991",
+        "- 2018 Remaster",
+        "- 2015 Remaster",
+        "- 2016 Remaster",
+        "- Remaster",
+        "(2022 Remaster",
+        '- From "Dirty Dancing" Soundtrack',
+        "- Remastered 2004",
+        "- 2002 Remaster",
+        "- 2017 Remaster",
+        "2014",
+    ]
+    for i in removes:
+        title = strip_title(i, title)
 
-    # Song name mustn't exceed 38 characters, else split to multiple lines
-    # TODO: check for song and artist lengths
-    text.multiline_text(
-        xy=(500, 500),
-        text=f"{title}\nby\n{artist}",
-        fill="black",
-        anchor="ms",
-        align="center",
-        font=century_gothic,
+    # Font selection
+    century_gothic = ImageFont.truetype("./fonts/CenturyGothic.ttf", 100)
+    century_gothic_sm = ImageFont.truetype("./fonts/CenturyGothic.ttf", 90)
+    century_gothic_bold = ImageFont.truetype("./fonts/CenturyGothicBold.ttf", 100)
+    text_color = "black"
+
+    # Song name mustn't exceed tile width, else split to multiple lines
+    text_start_height = img.height / 12
+    height = draw_multiple_line_text(
+        img, title, century_gothic_bold, text_color, text_start_height
     )
+    draw_multiple_line_text(img, artist, century_gothic_sm, text_color, height)
 
     return img
 
@@ -77,8 +181,6 @@ def create_free_space() -> Image:
     # Font selection
     century_gothic = ImageFont.truetype("./fonts/CenturyGothicBold.ttf", 200)
 
-    # Song name mustn't exceed 38 characters, else split to multiple lines
-    # TODO: check for song and artist lengths
     text.multiline_text(
         xy=(500, 500),
         text="FREE\nSPACE",
