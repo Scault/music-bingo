@@ -103,6 +103,7 @@ def create_square(title: str, artist: str) -> Image:
     text = ImageDraw.Draw(img)
 
     # Removes extra song information from title (e.g. "- 2013 Remaster")
+    # TODO: (.* Remastered Version .*) "More than a Woman"
     title = title.rsplit(" - ")[0]
 
     # TODO: remove explicit numerical values and add constants
