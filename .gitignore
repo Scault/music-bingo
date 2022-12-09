@@ -2,3 +2,4 @@
 __pycache__/
 *CurrentCommit.txt
 output/
+.cache
