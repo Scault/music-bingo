@@ -276,7 +276,7 @@ def create_middle_column(songs: List[Song]) -> Image:
         merge_images_vertically(
             merge_images_vertically(
                 create_square(songs[0][0], songs[0][1]),
-                create_square(songs[1][0], songs[2][1]),
+                create_square(songs[1][0], songs[1][1]),
             ),
             create_free_space(),
         ),
