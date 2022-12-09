@@ -122,7 +122,7 @@ def create_square(title: str, artist: str) -> Image:
         "- 2005 Remaster",
         "- Remastered 2011",
         '- From "Despicable Me 2"',
-        '- Theme from "Friends"',
+        '- Theme From "Friends"',
         "- Spider-Man: Into the Spider-Verse",
         "- with 24kGoldn",
         "- Main",
