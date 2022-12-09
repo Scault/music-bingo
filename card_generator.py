@@ -305,5 +305,5 @@ if __name__ == "__main__":
     img = create_card(example_songs)
     if not path.exists("output/"):
         makedirs("output/")
-    img.save("output/results.jpg")
+    img.save("output/example.jpg")
     print(img.size)

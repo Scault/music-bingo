@@ -1,4 +1,6 @@
+import os
 import sys
+import glob
 import random
 import logging
 import argparse
@@ -129,7 +131,13 @@ def generate_card(seed: int = None, playlist: int = None) -> int:
 
     if not path.exists("output/"):
         makedirs("output/")
-    create_card(card_songs).save("output/results.jpg")
+
+    # Remove previous generated bingo cards
+    files = glob.glob("output/*.jpg")
+    for f in files:
+        os.remove(f)
+
+    create_card(card_songs).save(f"output/bingo_card-{seed}.jpg")
     return int(seed)
 
 

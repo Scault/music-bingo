@@ -106,7 +106,7 @@ class Window(tk.Tk):
 
         # Add playlists to Playlist menu
         self.playlist = tk.IntVar()
-        self.playlist.set(1)
+        self.playlist.set(0)
         playlist_menu.add_radiobutton(
             label="70s",
             variable=self.playlist,
@@ -161,7 +161,7 @@ class Window(tk.Tk):
 
     def init_canvas(self) -> None:
         """Initializes the canvas."""
-        image = Image.open("output/results.jpg")
+        image = Image.open("imgs/overlay.jpg")
         image = image.resize((600, 750), Image.Resampling.LANCZOS)
         self.im = ImageTk.PhotoImage(image)
         self.im_cv = tk.Canvas(self)
@@ -186,7 +186,7 @@ class Window(tk.Tk):
         else:
             self.seed = generate_card(playlist=self.playlist.get())
         self.im_cv.delete("all")
-        image = Image.open("output/results.jpg")
+        image = Image.open(f"output/bingo_card-{self.seed}.jpg")
         image = image.resize((600, 750), Image.Resampling.LANCZOS)
         self.im = ImageTk.PhotoImage(image)
         self.im_cv.pack(anchor="nw", fill="both", expand=1)
