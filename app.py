@@ -18,6 +18,8 @@ class Window(tk.Tk):
         self.wm_iconphoto(False, icon)
         self.color = "red"
         self.actions = []
+        self.strokes = []
+        self.action_count = 0
         self.seed = "Unknown"
         self.playlist_count = 8
         self.init_menu()
@@ -145,13 +147,16 @@ class Window(tk.Tk):
         self.im_cv = tk.Canvas(self)
         self.im_cv.pack(anchor="nw", fill="both", expand=1)
         self.im_cv.create_image(0, 0, image=self.im, anchor="nw")
+        self.im_cv.bind("<Button-1>", self.paint)
         self.im_cv.bind("<B1-Motion>", self.paint)
+        self.im_cv.bind("<ButtonRelease-1>", self.paint)
 
     def clear(self) -> None:
         """Clears all drawing on the canvas."""
-        while self.actions:
-            action = self.actions.pop()
-            self.im_cv.delete(action)
+        if self.strokes:
+            for i in range(0, self.strokes.pop()):
+                action = self.actions.pop()
+                self.im_cv.delete(action)
 
     def generate_new_card(self, seed=None) -> None:
         """Generates a new bingo card on the canvas.
@@ -212,6 +217,11 @@ class Window(tk.Tk):
         Args:
             event: an event passed by Canvas.bind()
         """
+        if int(event.type) == 5:
+            self.strokes.append(self.action_count)
+
+            self.action_count = 0
+            return
         x1, y1 = (event.x - self.cursor_size.get()), (event.y - self.cursor_size.get())
         x2, y2 = (event.x + self.cursor_size.get()), (event.y + self.cursor_size.get())
         action = self.im_cv.create_rectangle(
@@ -225,6 +235,7 @@ class Window(tk.Tk):
             stipple="gray25",
         )
         self.actions.append(action)
+        self.action_count += 1
         self.my_canvas = action
 
 
