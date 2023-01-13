@@ -1,6 +1,6 @@
 #!/bin/bash
 
-pyinstaller -F --add-data "imgs/;." --add-data "fonts/;." app.py
+pyinstaller -F --add-data "imgs/;." --add-data "fonts/;." --noconsole app.py
 
 # Create release folder
 mkdir release
