@@ -356,7 +356,7 @@ class Window(tk.Tk):
         Args:
             seed: seed to use for card generation
         """
-        self.song_list = get_song_list("scotttheriault", PLAYLISTS[self.playlist.get()])
+        self.song_list = get_song_list(PLAYLISTS[self.playlist.get()])
         self.list.delete(0, tk.END)
         self.played.delete(0, tk.END)
         temp_list = []

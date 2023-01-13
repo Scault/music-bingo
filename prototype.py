@@ -33,18 +33,17 @@ PLAYLISTS = [
 ]
 
 
-def get_song_list(username: str, playlist_url: str) -> list:
+def get_song_list(playlist_url: str) -> list:
     """Retrieves a Spotify playlist
 
     Args:
-        username: Spotify user ID
         playlist_url: the url of the desired playlist
 
     Returns:
         a list of tuples (title, artist) for the entire playlist
     """
     song_list = []
-    results = spotify.user_playlist_tracks(username, playlist_url)
+    results = spotify.playlist_tracks(playlist_url)
     tracks = results["items"]
     while results["next"]:
         results = spotify.next(results)
@@ -129,7 +128,7 @@ def generate_card(seed: int = None, playlist: int = None) -> int:
     logging.info(f"{nums}")
 
     song_list = get_song_list(
-        "scotttheriault", PLAYLISTS[playlist] if playlist is not None else PLAYLIST_URL
+        PLAYLISTS[playlist] if playlist is not None else PLAYLIST_URL
     )
 
     # Shuffle list in a repeatable manner (i.e. shuffle the same way every time)
