@@ -137,7 +137,9 @@ class Window(tk.Tk):
         )
 
         # Add command(s) to Info menu
-        self.info_menu.add_command(label=f"Seed: {self.seed}", state="disabled")
+        self.info_menu.add_command(
+            label=f"Seed: {self.seed}", command=self.copy_to_clipboard
+        )
 
     def init_canvas(self) -> None:
         """Initializes the canvas."""
@@ -237,6 +239,11 @@ class Window(tk.Tk):
         self.actions.append(action)
         self.action_count += 1
         self.my_canvas = action
+
+    def copy_to_clipboard(self):
+        """Copy seed to clipboard."""
+        self.clipboard_append(self.seed)
+        messagebox.showinfo("Bingo!", "Seed copied to clipboard.")
 
 
 window = Window()
