@@ -2,7 +2,7 @@
 
 pyinstaller -F --add-data "imgs/;." --add-data "fonts/;." --noconsole app.py
 
-pyinstaller -F --noconsole checker.py
+pyinstaller -F --add-data "imgs/;." --noconsole checker.py
 
 # Create release folder
 mkdir release

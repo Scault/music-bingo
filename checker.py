@@ -93,6 +93,8 @@ class Window(tk.Tk):
         self.title("Bingo Card Checker")
         self.geometry("800x605")
         self.resizable(True, True)
+        icon = tk.PhotoImage(file="imgs/icon.png")
+        self.wm_iconphoto(False, icon)
         self.playlist_count = 8
         self.song_list = []
         self.init_gui()
