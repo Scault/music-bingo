@@ -211,7 +211,7 @@ class Window(tk.Tk):
             return
         self.generate_new_card(seed)
 
-    def paint(self, event) -> None:
+    def paint(self, event: tk.Event) -> None:
         """Paint on the canvas using the user's mouse.
 
         Args:
