@@ -1,5 +1,6 @@
 import random
 import tkinter as tk
+from collections import namedtuple
 from tkinter import messagebox, ttk
 from tkinter.simpledialog import askstring
 from prototype import (
@@ -9,7 +10,10 @@ from prototype import (
     PLAYLISTS,
     add_custom_playlist,
     generate_24_numbers,
+    split_list,
 )
+
+Song = namedtuple("Song", ["song", "letter"])
 
 RUDE_MESSAGES = [
     "You are swine you vulgar little maggot.",
@@ -84,14 +88,14 @@ COMPLETE_LINES = [
 ]
 
 
-class Window(tk.Tk):
+class BingoChecker(tk.Tk):
     """The Bingo Checker application window."""
 
     def __init__(self) -> None:
         """Initializes the Bingo Checker application window."""
         tk.Tk.__init__(self)
-        self.title("Bingo Card Checker")
-        self.geometry("800x605")
+        self.title("Bingo Controller")
+        self.geometry("1200x707")
         self.resizable(True, True)
         icon = tk.PhotoImage(file="imgs/icon.png")
         self.wm_iconphoto(False, icon)
@@ -103,81 +107,37 @@ class Window(tk.Tk):
 
     def init_gui(self) -> None:
         """Initializes the GUI for the application."""
-        # Create top level frames
-        top_frame = tk.Frame(self)
-        separator = ttk.Separator(self, orient="vertical")
-        bottom_frame = tk.Frame(self)
+        # Create top-level frames
+        top_frame = tk.Frame(self, padx=10, pady=10)
+        middle_frame = tk.Frame(self, padx=10)
+        bottom_frame = tk.Frame(self, padx=10, pady=10)
 
-        # Create top-most frame contents
-        self.search = tk.Entry(top_frame)
-        playlist_label = tk.Label(top_frame, text="Available Songs")
-        self.list = tk.Listbox(top_frame, exportselection=False)
-        add_button = tk.Button(top_frame, text=">>", command=self.add_song)
-        remove_button = tk.Button(top_frame, text="<<", command=self.remove_song)
-        played_label = tk.Label(top_frame, text="Played Songs")
-        self.played = tk.Listbox(top_frame, exportselection=False)
+        # Setup playlist viewer
+        self.init_viewer(top_frame)
+        self.viewer_frame.grid(row=0, column=0, sticky="nsew")
 
-        # Create bottom-most frame contents
-        seed_label = tk.Label(bottom_frame, text="Seed")
-        self.seed = tk.Entry(bottom_frame)
-        check_button = tk.Button(bottom_frame, text="Check", command=self.check_seed)
+        # Setup selector
+        self.init_bingo_selector(middle_frame)
+        self.selector_frame.grid(row=0, column=0)
 
-        # Setup playlist scrollbars
-        h_scrollbar_1 = tk.Scrollbar(top_frame, orient="horizontal")
-        h_scrollbar_1.config(command=self.list.xview)
-        h_scrollbar_1.grid(row=4, column=0, sticky="ew")
-        v_scrollbar_1 = tk.Scrollbar(top_frame, orient="vertical")
-        v_scrollbar_1.config(command=self.list.yview)
-        v_scrollbar_1.grid(row=2, column=1, rowspan=2, sticky="nsw")
-        self.list.config(
-            yscrollcommand=v_scrollbar_1.set, xscrollcommand=h_scrollbar_1.set
-        )
-
-        # Setup played scrollbars
-        h_scrollbar_2 = tk.Scrollbar(top_frame, orient="horizontal")
-        h_scrollbar_2.config(command=self.played.xview)
-        h_scrollbar_2.grid(row=4, column=3, sticky="ew")
-        v_scrollbar_2 = tk.Scrollbar(top_frame, orient="vertical")
-        v_scrollbar_2.config(command=self.played.yview)
-        v_scrollbar_2.grid(row=2, column=4, rowspan=2, sticky="ns")
-        self.played.config(
-            yscrollcommand=v_scrollbar_2.set, xscrollcommand=h_scrollbar_2.set
-        )
-
-        # Align top-most frame contents
-        self.search.grid(row=0, column=0, sticky="ew")
-        playlist_label.grid(row=1, column=0, sticky="s")
-        played_label.grid(row=1, column=3, sticky="s")
-        self.list.grid(row=2, column=0, rowspan=4, sticky="nsew")
-        add_button.grid(row=2, column=2, sticky="s", padx=5, pady=2.5)
-        self.played.grid(row=2, column=3, rowspan=3, sticky="nsew")
-        remove_button.grid(row=3, column=2, sticky="n", padx=5, pady=2.5)
-
-        # Align bottom-most frame contents
-        seed_label.grid(row=0, column=0)
-        self.seed.grid(row=1, column=0, pady=5)
-        check_button.grid(row=2, column=0)
+        # Setup card checker
+        self.init_card_checker(bottom_frame)
+        self.checker_frame.grid(row=0, column=0, sticky="nsew")
 
         # Align top level frames
-        top_frame.grid(row=0, column=0, sticky="nsew", padx=20, pady=10)
-        separator.grid(row=1, column=0)
-        bottom_frame.grid(row=2, column=0, padx=10, pady=10)
+        top_frame.grid(row=0, column=0, rowspan=2, sticky="nsew")
+        middle_frame.grid(row=0, column=1, sticky="nsew")
+        bottom_frame.grid(row=1, column=1, sticky="nsew")
 
-        # Configure window
+        # Configure content filling
         self.columnconfigure(0, weight=1)
         self.rowconfigure(0, weight=1)
-
-        # Configure grid
         top_frame.columnconfigure(0, weight=1)
-        top_frame.columnconfigure(1, weight=0)
-        top_frame.columnconfigure(2, weight=0)
-        top_frame.columnconfigure(3, weight=1)
-        top_frame.columnconfigure(4, weight=0)
-        top_frame.rowconfigure(0, weight=0)
-        top_frame.rowconfigure(1, weight=0)
-        top_frame.rowconfigure(2, weight=1)
-        top_frame.rowconfigure(3, weight=1)
-        top_frame.rowconfigure(4, weight=0)
+        top_frame.rowconfigure(0, weight=1)
+        middle_frame.columnconfigure(0, weight=1)
+        middle_frame.rowconfigure(0, weight=1)
+        bottom_frame.columnconfigure(0, weight=1)
+        bottom_frame.rowconfigure(0, weight=1)
 
         # Binds
         self.list.bind("<<ListboxSelect>>", self.fill_search)
@@ -258,35 +218,237 @@ class Window(tk.Tk):
             command=lambda: self.load_playlist(),
         )
 
+    def init_viewer(self, frame: tk.Frame) -> None:
+        """Sets up and configures the playlist viewers."""
+        # Create topmost frame contents
+        self.viewer_frame = tk.Frame(frame)
+
+        self.search = tk.Entry(self.viewer_frame)
+        playlist_label = tk.Label(self.viewer_frame, text="Available Songs")
+        self.list = tk.Listbox(self.viewer_frame, exportselection=False)
+        add_button = tk.Button(self.viewer_frame, text=">>", command=self.add_song)
+        remove_button = tk.Button(
+            self.viewer_frame, text="<<", command=self.remove_song
+        )
+        played_label = tk.Label(self.viewer_frame, text="Played Songs")
+        self.played = tk.Listbox(self.viewer_frame, exportselection=False)
+
+        # Setup "Available Songs" Listbox scrollbars
+        h_scrollbar_1 = tk.Scrollbar(self.viewer_frame, orient="horizontal")
+        h_scrollbar_1.config(command=self.list.xview)
+        v_scrollbar_1 = tk.Scrollbar(self.viewer_frame, orient="vertical")
+        v_scrollbar_1.config(command=self.list.yview)
+        self.list.config(
+            yscrollcommand=v_scrollbar_1.set, xscrollcommand=h_scrollbar_1.set
+        )
+
+        # Setup "Played Songs" Listbox scrollbars
+        h_scrollbar_2 = tk.Scrollbar(self.viewer_frame, orient="horizontal")
+        h_scrollbar_2.config(command=self.played.xview)
+        v_scrollbar_2 = tk.Scrollbar(self.viewer_frame, orient="vertical")
+        v_scrollbar_2.config(command=self.played.yview)
+        self.played.config(
+            yscrollcommand=v_scrollbar_2.set, xscrollcommand=h_scrollbar_2.set
+        )
+
+        # Align topmost frame contents
+        self.search.grid(row=0, column=0, sticky="ew")
+        playlist_label.grid(row=1, column=0, sticky="ew")
+        played_label.grid(row=1, column=3, sticky="ew")
+        self.list.grid(row=2, column=0, rowspan=4, sticky="nsew")
+        self.played.grid(row=2, column=3, rowspan=4, sticky="nsew")
+        add_button.grid(row=3, column=2, padx=5, pady=2.5, sticky="nsew")
+        remove_button.grid(row=4, column=2, padx=5, pady=2.5, sticky="nsew")
+        h_scrollbar_1.grid(row=6, column=0, sticky="nsew")
+        v_scrollbar_1.grid(row=2, column=1, rowspan=4, sticky="nsew")
+        h_scrollbar_2.grid(row=6, column=3, sticky="nsew")
+        v_scrollbar_2.grid(row=2, column=4, rowspan=4, sticky="nsew")
+
+        # Configure content filling
+        self.viewer_frame.columnconfigure(0, weight=1)
+        self.viewer_frame.columnconfigure(1, weight=0)
+        self.viewer_frame.columnconfigure(2, weight=0)
+        self.viewer_frame.columnconfigure(3, weight=1)
+        self.viewer_frame.columnconfigure(4, weight=0)
+        self.viewer_frame.rowconfigure(0, weight=0)
+        self.viewer_frame.rowconfigure(1, weight=0)
+        self.viewer_frame.rowconfigure(2, weight=1)
+        self.viewer_frame.rowconfigure(3, weight=0)
+        self.viewer_frame.rowconfigure(4, weight=0)
+        self.viewer_frame.rowconfigure(5, weight=1)
+        self.viewer_frame.rowconfigure(6, weight=0)
+
+    def init_bingo_selector(self, frame: tk.Frame) -> None:
+        """Sets up and configures the randomized song selector."""
+        # Create frames
+        self.selector_frame = tk.Frame(frame)
+
+        top_frame = tk.Frame(self.selector_frame)
+        separator = ttk.Separator(self.selector_frame, orient="horizontal")
+        bottom_frame = tk.Frame(self.selector_frame)
+
+        # Create topmost frame contents
+        b_button = tk.Button(
+            top_frame,
+            text="B",
+            height=5,
+            width=10,
+            bg="#3db2e3",
+            command=lambda: self.random_song(0),
+        )
+        i_button = tk.Button(
+            top_frame,
+            text="I",
+            height=5,
+            width=10,
+            bg="#ae3de3",
+            command=lambda: self.random_song(1),
+        )
+        n_button = tk.Button(
+            top_frame,
+            text="N",
+            height=5,
+            width=10,
+            bg="#3de36f",
+            command=lambda: self.random_song(2),
+        )
+        g_button = tk.Button(
+            top_frame,
+            text="G",
+            height=5,
+            width=10,
+            bg="#e3b43d",
+            command=lambda: self.random_song(3),
+        )
+        o_button = tk.Button(
+            top_frame,
+            text="O",
+            height=5,
+            width=10,
+            bg="#e33d53",
+            command=lambda: self.random_song(4),
+        )
+
+        # Create bottommost frame contents
+        song_label = tk.Label(bottom_frame, text="Song:")
+        self.chosen_song = tk.Label(bottom_frame, text="")
+
+        # Align toplevel frames
+        top_frame.grid(row=0, column=0, sticky="n", padx=10, pady=10)
+        separator.grid(row=1, column=0, sticky="nsew", padx=10)
+        bottom_frame.grid(row=2, column=0, sticky="n", padx=10, pady=10)
+
+        # Align top grid
+        b_button.grid(row=0, column=0, sticky="nw", padx=0)
+        i_button.grid(row=0, column=1, padx=5)
+        n_button.grid(row=0, column=2, padx=0)
+        g_button.grid(row=0, column=3, padx=5)
+        o_button.grid(row=0, column=4, padx=0)
+
+        # Align bottom grid
+        song_label.grid(row=0, column=0, sticky="new")
+        self.chosen_song.grid(row=1, column=0, sticky="new")
+
+        # Configure content filling
+        top_frame.rowconfigure(0, weight=0)
+        top_frame.columnconfigure(0, weight=0)
+        top_frame.columnconfigure(1, weight=0)
+        top_frame.columnconfigure(2, weight=0)
+        top_frame.columnconfigure(3, weight=0)
+        top_frame.columnconfigure(4, weight=0)
+        bottom_frame.rowconfigure(0, weight=0)
+        bottom_frame.rowconfigure(1, weight=0)
+        bottom_frame.columnconfigure(0, weight=0)
+
+    def init_card_checker(self, frame: tk.Frame) -> None:
+        """Sets up and configures the card checker."""
+        # Create elements
+        self.checker_frame = tk.Frame(frame)
+
+        seed_label = tk.Label(self.checker_frame, text="Seed")
+        self.seed = tk.Entry(self.checker_frame)
+        check_button = tk.Button(
+            self.checker_frame, text="Check", command=self.check_seed
+        )
+
+        # Align bottommost frame contents
+        seed_label.grid(row=0, column=0, sticky="s")
+        self.seed.grid(row=1, column=0, pady=5)
+        check_button.grid(row=2, column=0, sticky="n")
+
+        # Configure content filling
+        self.checker_frame.columnconfigure(0, weight=1)
+        self.checker_frame.rowconfigure(0, weight=1)
+        self.checker_frame.rowconfigure(1, weight=0)
+        self.checker_frame.rowconfigure(2, weight=1)
+
     def add_song(self) -> None:
         """Adds a song to the 'Played' ListBox."""
+        # Do nothing if nothing is selected
         if self.list.curselection() == ():
             return
+
+        # Remove the selected song from the available songs and add to the played songs
         for i in self.list.curselection():
             song = self.list.get(i)
             self.played.insert(tk.END, song)
             self.list.delete(i)
 
+        # Update the current list of available songs
         self.current_list.remove(song)
+
+        # Check which letter the song is under and remove from that letter
+        # TODO: Update this with the new Python 3.10 "match" switch statement
+        for element in self.letter_record:
+            if element.song == song:
+                if element.letter == "B":
+                    self.b.remove(song)
+                elif element.letter == "I":
+                    self.i.remove(song)
+                elif element.letter == "N":
+                    self.n.remove(song)
+                elif element.letter == "G":
+                    self.g.remove(song)
+                elif element.letter == "O":
+                    self.o.remove(song)
 
     def remove_song(self) -> None:
         """Removes a song from the 'Played' ListBox."""
+        # Do nothing if nothing is selected
         if self.played.curselection() == ():
             return
+
+        # Remove the selected song from the played songs and add to the available songs
         for i in self.played.curselection():
             song = self.played.get(i)
             self.list.insert(tk.END, song)
             self.played.delete(i)
 
+        # Update the current list of available songs
         self.current_list.append(song)
 
+        # Check which letter the song is under and re-add to that letter
+        # TODO: Update this with the new Python 3.10 "match" switch statement
+        for element in self.letter_record:
+            if element.song == song:
+                if element.letter == "B":
+                    self.b.append(song)
+                elif element.letter == "I":
+                    self.i.append(song)
+                elif element.letter == "N":
+                    self.n.append(song)
+                elif element.letter == "G":
+                    self.g.append(song)
+                elif element.letter == "O":
+                    self.o.append(song)
+
     def update(self, data: list) -> None:
-        """Updates the 'Playlist' ListBox.
+        """Updates the 'Available Songs' ListBox.
 
         Args:
             data: a list where each item is an entry in the ListBox
         """
-        # Clear listbox
+        # Clear the "Available Songs" Listbox
         self.list.delete(0, tk.END)
 
         # Add contents
@@ -294,22 +456,27 @@ class Window(tk.Tk):
             self.list.insert(tk.END, item)
 
     def fill_search(self, event: tk.Event) -> None:
-        """Fills the search bar with the selection in the 'Playlist' ListBox.
+        """Fills the search bar with the selection in the 'Available Songs' ListBox.
 
         Args:
             event: an event passed by Listbox.bind()
         """
+        # Clear search bar
         self.search.delete(0, tk.END)
+
+        # Add selected entry to the search bar
         self.search.insert(0, self.list.get(tk.ACTIVE))
 
     def check_entry(self, event: tk.Event) -> None:
-        """Updates the 'Played' ListBox with the typed string in the search box.
+        """Updates the 'Available Songs' ListBox with the typed string in the search box.
 
         Args:
             event: an event passed by Entry.bind()
         """
+        # Get the typed string in the search bar
         typed = self.search.get()
 
+        # Show all current available songs if nothing is typed, else show matches
         if typed == "":
             data = self.current_list
         else:
@@ -318,18 +485,28 @@ class Window(tk.Tk):
                 if typed.lower() in item.lower():
                     data.append(item)
 
+        # Update the "Available Songs" Listbox
         self.update(data)
 
     def check_seed(self) -> None:
         """Checks a given seed to see if it is a winning bingo card."""
+        # Do nothing is no seed has been entered
         if self.seed.get() == "":
             return
 
+        # TODO: Add type checking (i.e. only accept integers)
+
+        # Save the current random state
         old_state = random.getstate()
+
+        # Get the indexes of the songs using the provided seed
         random.seed(int(self.seed.get()))
         nums = generate_24_numbers(self.playlist.get())
+
+        # Restore the old random state
         random.setstate(old_state)
 
+        # Convert the list indexes to the respective songs
         lines = []
         for i in COMPLETE_LINES:
             line = []
@@ -338,45 +515,82 @@ class Window(tk.Tk):
                 line.append(self.song_list[x])
             lines.append(line)
 
+        # Get the list of all songs that have been played
         played = self.played.get(0, tk.END)
 
+        # Count the number of lines
         count = 0
         for line in lines:
             if set(played).issuperset(set(line)):
                 count += 1
 
+        # Display results to the user
+        # TODO: Add functionality to allow the number of desired lines to be configurable
         if count >= 2:
             messagebox.showinfo("Congratulations!", "This card is a winner!")
-
         else:
-            # random.seed(random.randint(1000000, 99999999))
             messagebox.showerror("WRONG", random.choice(RUDE_MESSAGES))
 
     def load_playlist(self, seed: int = None) -> None:
-        """Loads a playlist to display in the 'Playlist' window.
+        """Loads a playlist to display in the 'Available Songs' Listbox.
 
         Args:
             seed: seed to use for card generation
         """
+        # Get the list of songs
         self.song_list = get_song_list(PLAYLISTS[self.playlist.get()])
+
+        # Clear both Listboxes
         self.list.delete(0, tk.END)
         self.played.delete(0, tk.END)
+
+        # Trim data and add to the "Available Songs" Listbox
+        # TODO: Move the name trimming inside get_song_list()
         temp_list = []
         for i, song in enumerate(self.song_list):
             title = song[0].rsplit(" - ")[0]
             temp_list.append(f"{title} - {song[1]}")
             self.list.insert(i, f"{title} - {song[1]}")
         self.song_list = temp_list
+
+        # Shuffle the songs in a repeatable manner
+        # TODO: Move the repeatable shuffle into get_song_list()
         random.Random(1).shuffle(self.song_list)
         self.current_list = list(self.list.get(0, tk.END))
 
+        # Evenly divide the list into 5 segments and assign to a letter
+        split = split_list(self.song_list, 5)
+        self.b = split[0]
+        self.i = split[1]
+        self.n = split[2]
+        self.g = split[3]
+        self.o = split[4]
+
+        # Keep a record of which letter each song is under
+        # TODO: Attach the letter information to each entry so that this container can be removed
+        self.letter_record = []
+        for song in self.song_list:
+            if song in self.b:
+                self.letter_record.append(Song(song, "B"))
+            elif song in self.i:
+                self.letter_record.append(Song(song, "I"))
+            elif song in self.n:
+                self.letter_record.append(Song(song, "N"))
+            elif song in self.g:
+                self.letter_record.append(Song(song, "G"))
+            elif song in self.o:
+                self.letter_record.append(Song(song, "O"))
+
     def custom_playlist(self):
         """Opens the Playlist popup window."""
+        # Prompt the user to enter a Spotify playlist URL
         url = askstring("Add Custom Playlist", "Enter Spotify playlist URL:\t\t\t\t")
 
+        # Do nothing if nothing is typed
         if url is None:
             return
 
+        # Verify the playlist is longer than 24 songs
         try:
             num_songs = spotify.playlist(url)["tracks"]["total"]
             if num_songs < 25:
@@ -385,6 +599,8 @@ class Window(tk.Tk):
         except SpotifyException:
             return
 
+        # Add the custom playlist as an option to the menubar
+        # TODO: Make the label of the menu item the name of the custom playlist
         if add_custom_playlist(url):
             self.playlist_menu.add_radiobutton(
                 label="Custom Playlist",
@@ -392,10 +608,66 @@ class Window(tk.Tk):
                 value=self.playlist_count,
                 command=lambda: self.load_playlist(),
             )
+
+        # Set the active playlist and increment the number of playlists
         self.playlist.set(self.playlist_count)
         self.playlist_count += 1
+
+        # Load the new playlist
         self.load_playlist()
 
+    def random_song(self, letter: int) -> None:
+        """Selects a random song from a given column (letter)."""
+        # TODO: Update this with the new Python 3.10 "match" switch statement
+        if letter == 0:
+            if len(self.b) == 0:
+                song = "Empty"
+            else:
+                song = random.choice(self.b)
+                self.b.remove(song)
+        elif letter == 1:
+            if len(self.i) == 0:
+                song = "Empty"
+            else:
+                song = random.choice(self.i)
+                self.i.remove(song)
+        elif letter == 2:
+            if len(self.n) == 0:
+                song = "Empty"
+            else:
+                song = random.choice(self.n)
+                self.n.remove(song)
+        elif letter == 3:
+            if len(self.g) == 0:
+                song = "Empty"
+            else:
+                song = random.choice(self.g)
+                self.g.remove(song)
+        elif letter == 4:
+            if len(self.o) == 0:
+                song = "Empty"
+            else:
+                song = random.choice(self.o)
+                self.o.remove(song)
 
-window = Window()
+        # Update the chosen song label
+        self.chosen_song.config(text=f"{song}")
+
+        # Return if the column is empty
+        if song == "Empty":
+            return
+
+        # Add the random song to the "Played Songs" Listbox
+        self.played.insert(tk.END, song)
+
+        # Remove the random song from the "Available Songs" Listbox
+        for i, element in enumerate(self.list.get(0, tk.END)):
+            if element == song:
+                self.list.delete(i)
+
+        # Remove the random song from the current list of available songs
+        self.current_list.remove(song)
+
+
+window = BingoChecker()
 window.mainloop()
