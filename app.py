@@ -242,6 +242,7 @@ class Window(tk.Tk):
 
     def copy_to_clipboard(self):
         """Copy seed to clipboard."""
+        self.clipboard_clear()
         self.clipboard_append(self.seed)
         messagebox.showinfo("Bingo!", "Seed copied to clipboard.")
 
